@@ -4,6 +4,10 @@ VibroBug is a small steerable vibration-powered insect robot. The MVP uses two i
 
 This is an engineering prototype. Do not use it with an animal until the electronics, battery, wires, bristles, solder joints, and sharp edges are fully enclosed and durability-tested.
 
+## Concept
+
+![VibroBug engineering prototype concept](docs/images/vibrobug_concept.png)
+
 ## Hardware
 
 Minimum prototype bill of materials:
@@ -148,4 +152,3 @@ curl -X POST http://192.168.4.1/config \
 3. Adjust foot angle, motor position, and battery placement before changing firmware.
 4. Use max duty and trim sliders to avoid excessive current and balance turning.
 5. Record short videos and notes for every mechanical configuration.
-

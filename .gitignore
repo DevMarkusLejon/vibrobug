@@ -15,10 +15,10 @@ temp/
 !.env.example
 
 # Dependency/build outputs
+.pio/
 node_modules/
 dist/
 build/
 coverage/
 __pycache__/
 *.py[cod]
-

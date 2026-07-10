@@ -1,0 +1,617 @@
+:root {
+  --bg: #f6f1e8;
+  --paper: #fffaf2;
+  --ink: #1f2528;
+  --muted: #657076;
+  --line: #d9d0c1;
+  --accent: #e3b341;
+  --accent-dark: #755d1d;
+  --panel: #182125;
+  --panel-ink: #f5f0e7;
+  --radius: 8px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+}
+
+a {
+  color: inherit;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 12px clamp(16px, 4vw, 48px);
+  border-bottom: 1px solid rgba(31, 37, 40, 0.14);
+  background: rgba(246, 241, 232, 0.92);
+  backdrop-filter: blur(12px);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.brand-mark {
+  width: 24px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--ink);
+  position: relative;
+  display: inline-block;
+}
+
+.brand-mark::before,
+.brand-mark::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 2px;
+  background: var(--ink);
+  top: 7px;
+}
+
+.brand-mark::before {
+  left: -12px;
+  transform: rotate(-24deg);
+}
+
+.brand-mark::after {
+  right: -12px;
+  transform: rotate(24deg);
+}
+
+nav {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+nav a {
+  text-decoration: none;
+  color: var(--muted);
+  font-size: 14px;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+}
+
+nav a:hover,
+nav a:focus-visible {
+  background: rgba(31, 37, 40, 0.08);
+  color: var(--ink);
+}
+
+.intro {
+  min-height: calc(100vh - 57px);
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
+  align-items: center;
+  gap: clamp(24px, 5vw, 72px);
+  padding: clamp(32px, 7vw, 80px) clamp(16px, 5vw, 72px);
+  border-bottom: 1px solid var(--line);
+}
+
+.intro-copy {
+  max-width: 680px;
+}
+
+.eyebrow,
+.kicker {
+  margin: 0 0 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-dark);
+  font-weight: 800;
+  font-size: 13px;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: 0;
+  line-height: 1.05;
+}
+
+h1 {
+  font-size: clamp(42px, 6vw, 78px);
+  margin: 0 0 18px;
+  overflow-wrap: anywhere;
+}
+
+h2 {
+  font-size: clamp(30px, 4.5vw, 56px);
+  margin: 0 0 18px;
+}
+
+h3 {
+  font-size: 20px;
+  margin: 0 0 16px;
+}
+
+p {
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1.55;
+}
+
+.intro-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 28px;
+}
+
+.button {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: white;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.button.secondary {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--ink);
+}
+
+.concept {
+  margin: 0;
+  align-self: stretch;
+  min-height: 420px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid rgba(31, 37, 40, 0.18);
+  background: #e9dfcf;
+}
+
+.concept img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.walkthrough-shell {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: clamp(18px, 4vw, 56px);
+  padding: clamp(24px, 5vw, 72px);
+  align-items: start;
+}
+
+.progress-panel {
+  position: sticky;
+  top: 84px;
+  display: grid;
+  gap: 22px;
+  padding: 18px;
+  background: var(--panel);
+  color: var(--panel-ink);
+  border-radius: var(--radius);
+  min-height: 420px;
+}
+
+.progress-ring {
+  position: relative;
+  width: 132px;
+  height: 132px;
+  justify-self: center;
+}
+
+.progress-ring svg {
+  width: 132px;
+  height: 132px;
+  transform: rotate(-90deg);
+}
+
+.ring-bg,
+.ring-fg {
+  fill: none;
+  stroke-width: 9;
+}
+
+.ring-bg {
+  stroke: rgba(255, 255, 255, 0.14);
+}
+
+.ring-fg {
+  stroke: var(--accent);
+  stroke-dasharray: 326.73;
+  stroke-dashoffset: 326.73;
+  transition: stroke 180ms ease;
+}
+
+#progressValue {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+  font-size: 24px;
+}
+
+#stepList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+#stepList a {
+  display: block;
+  text-decoration: none;
+  color: rgba(245, 240, 231, 0.72);
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  font-size: 14px;
+}
+
+#stepList a.active {
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+}
+
+.steps {
+  display: grid;
+  gap: 18px;
+}
+
+.step {
+  min-height: 74vh;
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(300px, 0.75fr);
+  align-items: center;
+  gap: clamp(20px, 4vw, 56px);
+  padding: clamp(24px, 5vw, 56px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  opacity: 0.68;
+  transform: scale(0.985);
+  transition: opacity 220ms ease, transform 220ms ease, border-color 220ms ease;
+}
+
+.step.active {
+  opacity: 1;
+  transform: scale(1);
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+}
+
+.step-text p:last-child {
+  margin-bottom: 0;
+}
+
+.decision {
+  margin-top: 22px;
+  padding: 16px;
+  border-left: 5px solid var(--accent);
+  background: rgba(31, 37, 40, 0.05);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+code {
+  font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  background: rgba(31, 37, 40, 0.08);
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+
+.interactive-card {
+  background: #162125;
+  color: #f7f1e8;
+  border-radius: var(--radius);
+  padding: 22px;
+  box-shadow: 0 22px 60px rgba(31, 37, 40, 0.18);
+  overflow: hidden;
+}
+
+.interactive-card p {
+  color: rgba(247, 241, 232, 0.78);
+  font-size: 16px;
+}
+
+.parts-card {
+  display: grid;
+  gap: 10px;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.part,
+.tab,
+.phone button {
+  border: 0;
+  border-radius: var(--radius);
+  min-height: 42px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.part.selected,
+.tab.active {
+  background: var(--accent);
+  color: #1c1b16;
+}
+
+.wiring-diagram {
+  min-height: 360px;
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.node {
+  position: absolute;
+  min-width: 112px;
+  text-align: center;
+  padding: 11px 14px;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: #171813;
+  font-weight: 900;
+  z-index: 2;
+}
+
+.supply { top: 0; }
+.motor { top: 92px; }
+.mosfet { top: 184px; }
+.ground { top: 276px; }
+.pwm { left: 0; top: 184px; background: #69b7a6; }
+
+.wire {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.wire.vertical {
+  width: 4px;
+  height: 292px;
+  top: 28px;
+  left: calc(50% - 2px);
+}
+
+.wire.gate {
+  width: calc(50% - 90px);
+  height: 4px;
+  left: 110px;
+  top: 205px;
+}
+
+pre {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-x: auto;
+  color: #f8ecd3;
+  background: rgba(0, 0, 0, 0.26);
+  padding: 16px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.safety-flow {
+  margin: 0;
+  padding-left: 22px;
+  display: grid;
+  gap: 12px;
+}
+
+.safety-flow li {
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.mixer-card {
+  display: grid;
+  gap: 18px;
+}
+
+.mixer-card label,
+.checklist-card label {
+  display: grid;
+  gap: 8px;
+  color: rgba(247, 241, 232, 0.9);
+  font-weight: 750;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.motor-bars {
+  display: grid;
+  gap: 14px;
+}
+
+.motor-bars div {
+  display: grid;
+  grid-template-columns: 100px 1fr 48px;
+  align-items: center;
+  gap: 10px;
+}
+
+meter {
+  width: 100%;
+  height: 22px;
+}
+
+.phone {
+  max-width: 260px;
+  margin: 0 auto;
+  padding: 16px;
+  border-radius: 28px;
+  background: #0b0f11;
+  border: 6px solid #30383b;
+}
+
+.phone-header {
+  height: 44px;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+}
+
+.joystick-mock {
+  aspect-ratio: 1;
+  border-radius: var(--radius);
+  background: radial-gradient(circle, #333 0 35%, #15191b 36% 100%);
+  border: 1px solid #3e484c;
+  display: grid;
+  place-items: center;
+  margin: 10px 0;
+}
+
+.joystick-mock span {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: var(--accent);
+  transform: translate(30px, -38px);
+  animation: drift 2.5s ease-in-out infinite;
+}
+
+@keyframes drift {
+  0%, 100% { transform: translate(30px, -38px); }
+  50% { transform: translate(-28px, -20px); }
+}
+
+.phone-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.phone button.stop {
+  background: #c24f57;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.checklist-card {
+  display: grid;
+  gap: 12px;
+}
+
+.checklist-card input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.safety-card ul {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 12px;
+}
+
+footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 28px clamp(16px, 5vw, 72px);
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+}
+
+@media (max-width: 980px) {
+  .intro,
+  .walkthrough-shell,
+  .step {
+    grid-template-columns: 1fr;
+  }
+
+  .progress-panel {
+    position: relative;
+    top: auto;
+    min-height: 0;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+  }
+
+  #stepList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .concept {
+    min-height: 320px;
+  }
+}
+
+@media (max-width: 640px) {
+  .topbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  nav {
+    justify-content: flex-start;
+  }
+
+  .intro {
+    min-height: auto;
+  }
+
+  .progress-panel {
+    grid-template-columns: 1fr;
+  }
+
+  #stepList {
+    grid-template-columns: 1fr;
+  }
+
+  .step {
+    min-height: auto;
+  }
+
+  .motor-bars div {
+    grid-template-columns: 1fr;
+  }
+
+  footer {
+    flex-direction: column;
+  }
+}

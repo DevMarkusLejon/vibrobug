@@ -8,6 +8,10 @@ This is an engineering prototype. Do not use it with an animal until the electro
 
 ![VibroBug engineering prototype concept](docs/images/vibrobug_concept.png)
 
+## Interactive Walkthrough
+
+Open [site/index.html](site/index.html) for a scroll-driven implementation guide that explains the hardware, firmware, control API, safety decisions, and tuning process.
+
 ## Hardware
 
 Minimum prototype bill of materials:

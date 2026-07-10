@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VibroBug Implementation Walkthrough</title>
+  <meta name="description" content="Interactive implementation guide for the VibroBug two-motor vibration robot.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#overview" aria-label="VibroBug walkthrough home">
+      <span class="brand-mark"></span>
+      <span>VibroBug Build Guide</span>
+    </a>
+    <nav aria-label="Walkthrough sections">
+      <a href="#overview">Overview</a>
+      <a href="#hardware">Hardware</a>
+      <a href="#firmware">Firmware</a>
+      <a href="#web-control">Control</a>
+      <a href="#tuning">Tuning</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="intro" id="overview" data-step="Overview">
+      <div class="intro-copy">
+        <p class="eyebrow">Two-motor differential vibrobot</p>
+        <h1>Walk through the VibroBug build.</h1>
+        <p>
+          This guide explains how the prototype is assembled, why each engineering decision was made,
+          and how the firmware turns browser commands into safe motor vibration.
+        </p>
+        <div class="intro-actions" aria-label="Primary actions">
+          <a class="button" href="#hardware">Start the build</a>
+          <a class="button secondary" href="../README.md">Open repo README</a>
+        </div>
+      </div>
+      <figure class="concept">
+        <img src="../docs/images/vibrobug_concept.png" alt="Concept image of the VibroBug engineering prototype with exposed electronics and bristle legs">
+      </figure>
+    </section>
+
+    <section class="walkthrough-shell" aria-label="Implementation walkthrough">
+      <aside class="progress-panel" aria-label="Scroll progress">
+        <div class="progress-ring" aria-hidden="true">
+          <svg viewBox="0 0 120 120">
+            <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
+            <circle class="ring-fg" cx="60" cy="60" r="52"></circle>
+          </svg>
+          <span id="progressValue">0%</span>
+        </div>
+        <ol id="stepList"></ol>
+      </aside>
+
+      <div class="steps">
+        <article class="step active" id="hardware" data-step="Hardware Choice" data-accent="#e3b341">
+          <div class="step-text">
+            <p class="kicker">Step 1</p>
+            <h2>Pick hardware that makes steering testable early.</h2>
+            <p>
+              The first build uses a Seeed XIAO ESP32-C3, two small ERM vibration motors,
+              MOSFET low-side switches, and a light 1S LiPo. The design keeps the electronics
+              small enough for a skittering chassis while still leaving enough PWM channels,
+              Wi-Fi, and flash for browser control.
+            </p>
+            <div class="decision">
+              <strong>Design decision:</strong>
+              Wi-Fi AP control beats BLE for the MVP because any phone can open a local page
+              without pairing or installing an app.
+            </div>
+          </div>
+          <div class="interactive-card parts-card">
+            <h3>Core stack</h3>
+            <button class="part selected" data-part="controller">XIAO ESP32-C3</button>
+            <button class="part" data-part="actuators">2 ERM motors</button>
+            <button class="part" data-part="drivers">2 MOSFET drivers</button>
+            <button class="part" data-part="power">1S LiPo + switch</button>
+            <p id="partDetail">Small Wi-Fi controller, enough PWM pins, and a compact 21 x 17.8 mm footprint.</p>
+          </div>
+        </article>
+
+        <article class="step" id="wiring" data-step="Wiring Path" data-accent="#4fb286">
+          <div class="step-text">
+            <p class="kicker">Step 2</p>
+            <h2>Switch motor current outside the microcontroller.</h2>
+            <p>
+              Each motor is driven through an N-MOSFET. The ESP32-C3 pin only drives the MOSFET gate;
+              motor current flows from the battery through the motor and MOSFET to ground.
+            </p>
+            <div class="decision">
+              <strong>Design decision:</strong>
+              MOSFETs are lighter than a full dual H-bridge and are enough because vibration motors
+              only need one direction.
+            </div>
+          </div>
+          <div class="interactive-card wiring-card">
+            <div class="wiring-diagram" aria-label="Low-side MOSFET wiring diagram">
+              <div class="node supply">LiPo +</div>
+              <div class="wire vertical"></div>
+              <div class="node motor">Motor</div>
+              <div class="wire vertical"></div>
+              <div class="node mosfet">N-MOSFET</div>
+              <div class="wire vertical"></div>
+              <div class="node ground">GND</div>
+              <div class="node pwm">PWM gate</div>
+              <div class="wire gate"></div>
+            </div>
+            <p>Repeat this low-side switch once for the left motor and once for the right motor.</p>
+          </div>
+        </article>
+
+        <article class="step" id="config" data-step="Pin Config" data-accent="#d36c4d">
+          <div class="step-text">
+            <p class="kicker">Step 3</p>
+            <h2>Centralize every hardware assumption.</h2>
+            <p>
+              Pin assignments and safety constants live in one firmware file so the robot can be rewired
+              without hunting through the codebase. The placeholder pins are D2 and D3 for motor PWM.
+            </p>
+            <div class="decision">
+              <strong>Design decision:</strong>
+              Hardware mappings are isolated in <code>config.h</code> because pin labels may vary between
+              board packages and must be checked before soldering.
+            </div>
+          </div>
+          <div class="interactive-card code-card">
+            <pre><code>LEFT_MOTOR_PWM_PIN  = D2
+RIGHT_MOTOR_PWM_PIN = D3
+COMMAND_TIMEOUT_MS  = 500
+MAX_DUTY            = 0.80
+RAMP_RATE           = 2.0 / second</code></pre>
+          </div>
+        </article>
+
+        <article class="step" id="firmware" data-step="Motor Driver" data-accent="#55a3d8">
+          <div class="step-text">
+            <p class="kicker">Step 4</p>
+            <h2>Wrap motor output in a safety layer.</h2>
+            <p>
+              Browser input never writes PWM directly. The <code>MotorDriver</code> clamps values, applies
+              max duty, ramps changes, adds a short start boost, and cuts output immediately when commands
+              go stale.
+            </p>
+            <div class="decision">
+              <strong>Design decision:</strong>
+              Timeout is hard-stop, not ramp-down, so closing the page or losing Wi-Fi stops the robot
+              within the configured safety window.
+            </div>
+          </div>
+          <div class="interactive-card timeline-card">
+            <h3>Motor safety flow</h3>
+            <ol class="safety-flow">
+              <li>Receive JSON command</li>
+              <li>Clamp and trim target</li>
+              <li>Ramp toward target</li>
+              <li>Apply PWM through LEDC</li>
+              <li>Stop instantly after 500 ms stale input</li>
+            </ol>
+          </div>
+        </article>
+
+        <article class="step" id="mixer" data-step="Drive Mixer" data-accent="#9d78d8">
+          <div class="step-text">
+            <p class="kicker">Step 5</p>
+            <h2>Convert joystick movement into left and right motor intensity.</h2>
+            <p>
+              The mixer accepts throttle from 0 to 1 and turn from -1 to 1. Negative turn makes the right
+              motor stronger for a left curve; positive turn makes the left motor stronger for a right curve.
+            </p>
+            <div class="decision">
+              <strong>Design decision:</strong>
+              The mixer normalizes both sides so aggressive turning never exceeds the safe duty range.
+            </div>
+          </div>
+          <div class="interactive-card mixer-card">
+            <label>Throttle <input id="throttle" type="range" min="0" max="1" step="0.01" value="0.65"></label>
+            <label>Turn <input id="turn" type="range" min="-1" max="1" step="0.01" value="0.25"></label>
+            <div class="motor-bars">
+              <div>
+                <span>Left motor</span>
+                <meter id="leftMeter" min="0" max="1" value="0"></meter>
+                <strong id="leftValue">0.00</strong>
+              </div>
+              <div>
+                <span>Right motor</span>
+                <meter id="rightMeter" min="0" max="1" value="0"></meter>
+                <strong id="rightValue">0.00</strong>
+              </div>
+            </div>
+            <pre id="jsonPreview"></pre>
+          </div>
+        </article>
+
+        <article class="step" id="web-control" data-step="Web Control" data-accent="#e06f8b">
+          <div class="step-text">
+            <p class="kicker">Step 6</p>
+            <h2>Serve the controller from the robot itself.</h2>
+            <p>
+              The ESP32-C3 starts an access point named <code>VibroBug-XXXX</code> and serves a joystick UI
+              at <code>192.168.4.1</code>. The page sends commands every 75 ms while the user is touching
+              the joystick and posts <code>/stop</code> on release.
+            </p>
+            <div class="decision">
+              <strong>Design decision:</strong>
+              The control page lives in firmware, so the robot can be driven from a phone without internet,
+              Bluetooth pairing, or a laptop.
+            </div>
+          </div>
+          <div class="interactive-card phone-card" aria-label="Phone controller mockup">
+            <div class="phone">
+              <div class="phone-header">VibroBug</div>
+              <div class="joystick-mock"><span></span></div>
+              <div class="phone-buttons">
+                <button>Forward</button>
+                <button>Left</button>
+                <button>Right</button>
+                <button class="stop">Stop</button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="step" id="api" data-step="HTTP API" data-accent="#69b7a6">
+          <div class="step-text">
+            <p class="kicker">Step 7</p>
+            <h2>Expose small JSON endpoints for testing and tuning.</h2>
+            <p>
+              The API supports mixed drive commands, direct motor tuning, pattern playback, status reads,
+              config updates, and immediate stop. This makes bench testing possible before the phone UI is used.
+            </p>
+            <div class="decision">
+              <strong>Design decision:</strong>
+              Direct mode is kept alongside joystick mode because vibration locomotion depends on mechanics
+              and needs repeatable left/right experiments.
+            </div>
+          </div>
+          <div class="interactive-card api-card">
+            <div class="tabs" role="tablist" aria-label="API examples">
+              <button class="tab active" data-api="drive">Drive</button>
+              <button class="tab" data-api="direct">Direct</button>
+              <button class="tab" data-api="pattern">Pattern</button>
+              <button class="tab" data-api="status">Status</button>
+            </div>
+            <pre id="apiSnippet"></pre>
+          </div>
+        </article>
+
+        <article class="step" id="tuning" data-step="Mechanical Tuning" data-accent="#d19a66">
+          <div class="step-text">
+            <p class="kicker">Step 8</p>
+            <h2>Tune the body before blaming the firmware.</h2>
+            <p>
+              The firmware can steer only if the mechanics convert vibration into directional slip.
+              Test bristle angle, motor placement, motor orientation, battery position, surface, and body mass.
+            </p>
+            <div class="decision">
+              <strong>Design decision:</strong>
+              The build protocol starts ugly because the first success criterion is repeatable skittering,
+              not a polished shell.
+            </div>
+          </div>
+          <div class="interactive-card checklist-card">
+            <h3>Bench test sequence</h3>
+            <label><input type="checkbox"> One motor moves at least 20 cm in 10 seconds</label>
+            <label><input type="checkbox"> Left stronger creates a repeatable right-ish curve</label>
+            <label><input type="checkbox"> Right stronger creates a repeatable left-ish curve</label>
+            <label><input type="checkbox"> Touch release and timeout both stop motors</label>
+            <label><input type="checkbox"> Wiring survives vibration without breaks</label>
+          </div>
+        </article>
+
+        <article class="step" id="safety" data-step="Cat Safety" data-accent="#c24f57">
+          <div class="step-text">
+            <p class="kicker">Step 9</p>
+            <h2>Treat the first robot as a lab prototype.</h2>
+            <p>
+              The early build has exposed electronics, bristles, solder joints, wires, and a LiPo. It is useful
+              for engineering tests but not safe for animal play until enclosed and durability-tested.
+            </p>
+            <div class="decision">
+              <strong>Design decision:</strong>
+              Firmware limits are necessary, but physical enclosure, strain relief, part retention, and a power
+              switch are what make the later cat-toy version credible.
+            </div>
+          </div>
+          <div class="interactive-card safety-card">
+            <h3>Do not skip</h3>
+            <ul>
+              <li>No exposed LiPo during animal use</li>
+              <li>No loose bristles, wires, or small detachable parts</li>
+              <li>Physical power switch required</li>
+              <li>Supervised testing only until enclosure is validated</li>
+            </ul>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>VibroBug implementation walkthrough</span>
+    <a href="https://github.com/DevMarkusLejon/vibrobug">GitHub repo</a>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
